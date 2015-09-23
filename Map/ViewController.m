@@ -10,6 +10,16 @@
 
 @import MapKit;
 
+@import MapKit.MKAnnotation;
+
+@interface MAPAnnotation : NSObject <MKAnnotation>
+
+@end
+
+@implementation MAPAnnotation
+
+@end
+
 @interface ViewController () <CLLocationManagerDelegate, MKMapViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
@@ -39,6 +49,8 @@
     self.mapView.showsPointsOfInterest = NO;
     self.mapView.showsUserLocation = YES;
     self.mapView.delegate = self;
+    
+    [self.editButton addTarget:self action:@selector(editButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
 }
 
 -(void)viewDidAppear:(BOOL)animated {
@@ -57,11 +69,11 @@
     
 }
 
-//- (void)mapView:(MKMapView *)mapView didUpdateUserLocation:(MKUserLocation *)userLocation {
-//    MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(userLocation.coordinate, 725, 725);
-//    [self.mapView setRegion:[self.mapView regionThatFits:region] animated:YES];
-//    [self.locationManager stopUpdatingLocation];
-//}
+- (void)editButtonPressed:(id)sender {
+    MKPointAnnotation *annotation = [[MKPointAnnotation alloc] init];
+    annotation.coordinate = self.mapView.centerCoordinate;
+    [self.mapView addAnnotation:annotation];
+}
 
 - (void)mapView:(MKMapView *)mapView regionDidChangeAnimated:(BOOL)animated {
     CLGeocoder *geocoder = [[CLGeocoder alloc] init];
@@ -90,19 +102,28 @@
     }];
 }
 
-/*
- @property (nonatomic, readonly, copy, nullable) NSString *name; // eg. Apple Inc.
- @property (nonatomic, readonly, copy, nullable) NSString *thoroughfare; // street name, eg. Infinite Loop
- @property (nonatomic, readonly, copy, nullable) NSString *subThoroughfare; // eg. 1
- @property (nonatomic, readonly, copy, nullable) NSString *locality; // city, eg. Cupertino
- @property (nonatomic, readonly, copy, nullable) NSString *subLocality; // neighborhood, common name, eg. Mission District
- @property (nonatomic, readonly, copy, nullable) NSString *administrativeArea; // state, eg. CA
- @property (nonatomic, readonly, copy, nullable) NSString *subAdministrativeArea; // county, eg. Santa Clara
- @property (nonatomic, readonly, copy, nullable) NSString *postalCode; // zip code, eg. 95014
- @property (nonatomic, readonly, copy, nullable) NSString *ISOcountryCode; // eg. US
- @property (nonatomic, readonly, copy, nullable) NSString *country; // eg. United States
- @property (nonatomic, readonly, copy, nullable) NSString *inlandWater; // eg. Lake Tahoe
- @property (nonatomic, readonly, copy, nullable) NSString *ocean; // eg. Pacific Ocean
- @property (nonatomic, readonly, copy, nullable) NSArray<NSString *> *areasOfInterest; // eg. Golden Gate Park
- */
+- (void)mapView:(MKMapView *)mapView didSelectAnnotationView:(MKAnnotationView *)view {
+    NSLog(@"%@", view.description);
+
+    MAPAnnotation *annotation= view.annotation;  // Get your annotaion here
+    MKCoordinateRegion region = mapView.region;
+    region.center.latitude=annotation.coordinate.latitude;
+    region.center.longitude=annotation.coordinate.longitude;
+    [mapView setRegion:region animated:YES];
+}
+
+- (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id <MKAnnotation>)annotation {
+    // this part is boilerplate code used to create or reuse a pin annotation
+    static NSString *viewId = @"MKPinAnnotationView";
+    MKPinAnnotationView *annotationView = (MKPinAnnotationView*)[self.mapView dequeueReusableAnnotationViewWithIdentifier:viewId];
+    if (annotationView == nil) {
+        annotationView = [[MKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:viewId];
+    }
+    
+    // set your custom image
+    annotationView.image = [UIImage imageNamed:@"emoji-ghost.png"];
+    return annotationView;
+}
+
+
 @end

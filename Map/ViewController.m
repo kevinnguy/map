@@ -18,6 +18,8 @@
 
 @implementation MAPAnnotation
 
+@synthesize coordinate;
+
 @end
 
 @interface ViewController () <CLLocationManagerDelegate, MKMapViewDelegate>
@@ -113,15 +115,19 @@
 }
 
 - (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id <MKAnnotation>)annotation {
+    if ([annotation isKindOfClass:[MKUserLocation class]]) {
+        return nil;
+    }
+    
     // this part is boilerplate code used to create or reuse a pin annotation
     static NSString *viewId = @"MKPinAnnotationView";
-    MKPinAnnotationView *annotationView = (MKPinAnnotationView*)[self.mapView dequeueReusableAnnotationViewWithIdentifier:viewId];
+    MKAnnotationView *annotationView = (MKPinAnnotationView*)[self.mapView dequeueReusableAnnotationViewWithIdentifier:viewId];
     if (annotationView == nil) {
         annotationView = [[MKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:viewId];
     }
     
     // set your custom image
-    annotationView.image = [UIImage imageNamed:@"emoji-ghost.png"];
+    annotationView.image = [UIImage imageNamed:@"circle"];
     return annotationView;
 }
 
